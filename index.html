@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Genshin Weapon Gallery</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    h1 {
+      text-align: center;
+      color: #38bdf8;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+    }
+
+    .card img {
+      max-width: 100%;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .card .name {
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: #facc15;
+    }
+
+    .card .slug {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: #64748b;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔰 Genshin Weapon API Viewer</h1>
+  <div id="gallery" class="grid"></div>
+
+  <footer>
+    API by <a href="https://api-seven-rust.vercel.app/api/senjata" target="_blank" style="color:#38bdf8;">api-seven-rust.vercel.app</a>
+  </footer>
+
+  <script>
+    const API_URL = 'https://api-seven-rust.vercel.app/api/senjata';
+
+    async function loadWeapons() {
+      try {
+        const res = await fetch(API_URL);
+        const json = await res.json();
+
+        const gallery = document.getElementById('gallery');
+        json.data.forEach(weapon => {
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerHTML = `
+            <img src="${weapon.image}" alt="${weapon.name}" loading="lazy">
+            <div class="name">${weapon.name}</div>
+            <div class="slug">${weapon.slug}</div>
+          `;
+          gallery.appendChild(div);
+        });
+      } catch (err) {
+        document.getElementById('gallery').innerHTML = `<p>Gagal memuat data dari API.</p>`;
+        console.error('Error fetching API:', err);
+      }
+    }
+
+    loadWeapons();
+  </script>
+</body>
+  </html>
