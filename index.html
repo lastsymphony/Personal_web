@@ -1,307 +1,76 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Berita Genshin Impact</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        :root {
-            --genshin-blue: #2b4a6e;
-            --genshin-gold: #d5a021;
-        }
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .header {
-            background: linear-gradient(135deg, var(--genshin-blue), #3a6ea5);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            text-align: center;
-            background-image: url('https://uploadstatic-sea.hoyoverse.com/contentweb/20200211/2020021114280549098.jpg');
-            background-size: cover;
-            background-position: center;
-            position: relative;
-        }
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(43, 74, 110, 0.8);
-        }
-        .header-content {
-            position: relative;
-            z-index: 1;
-        }
-        .article-card {
-            transition: transform 0.3s;
-            margin-bottom: 1.5rem;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .article-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-        }
-        .article-img {
-            height: 200px;
-            object-fit: cover;
-            width: 100%;
-        }
-        .article-title {
-            color: var(--genshin-blue);
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        .article-date {
-            color: #6c757d;
-            font-size: 0.85rem;
-            margin-bottom: 0.75rem;
-        }
-        .article-content {
-            color: #495057;
-            margin-bottom: 1rem;
-        }
-        .loading-spinner {
-            width: 3rem;
-            height: 3rem;
-        }
-        .footer {
-            background-color: var(--genshin-blue);
-            color: white;
-            padding: 1.5rem 0;
-            margin-top: 3rem;
-        }
-        .badge-event {
-            background-color: #dc3545;
-            margin-right: 5px;
-        }
-        .badge-wish {
-            background-color: #6f42c1;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Berita Genshin Impact</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #00c4ff;
+    }
+    .item {
+      background: #1a1a1a;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 0;
+      box-shadow: 0 0 10px #000;
+    }
+    .item img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .item a {
+      color: #00c4ff;
+      font-size: 1.1em;
+      text-decoration: none;
+    }
+    .item small {
+      display: block;
+      color: #999;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <div class="container header-content">
-            <h1 class="display-4 fw-bold">Berita Genshin Impact</h1>
-            <p class="lead">Update terbaru langsung dari HoYoverse</p>
-        </div>
-    </div>
+  <h1>📰 Berita Genshin Impact</h1>
+  <div id="feed">Loading...</div>
 
-    <div class="container">
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" id="search-input" class="form-control" placeholder="Cari berita...">
-                </div>
-            </div>
-            <div class="col-md-6 text-md-end mt-2 mt-md-0">
-                <button id="refresh-btn" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-clockwise"></i> Refresh
-                </button>
-            </div>
-        </div>
+  <script>
+    async function loadFeed() {
+      const container = document.getElementById('feed');
+      try {
+        const res = await fetch('https://apikey-six.vercel.app/api/feed');
+        const data = await res.json();
 
-        <div id="feed-container" class="row">
-            <div class="col-12 text-center my-5">
-                <div class="spinner-border loading-spinner text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2">Memuat berita terbaru...</p>
-            </div>
-        </div>
-    </div>
-
-    <footer class="footer">
-        <div class="container text-center">
-            <p>© 2025 Genshin Impact RSS Reader | Fan Project Tidak Resmi</p>
-            <p>Data dari genshin-feed.com | Tidak berafiliasi dengan HoYoverse</p>
-        </div>
-    </footer>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const container = document.getElementById('feed-container');
-            const searchInput = document.getElementById('search-input');
-            const refreshBtn = document.getElementById('refresh-btn');
-            let allArticles = [];
-            
-            // Fungsi untuk memuat feed
-            async function loadFeed() {
-                try {
-                    container.innerHTML = `
-                        <div class="col-12 text-center my-5">
-                            <div class="spinner-border loading-spinner text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="mt-2">Memuat berita terbaru...</p>
-                        </div>
-                    `;
-                    
-                    // Menggunakan CORS proxy untuk menghindari masalah CORS
-                    const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                    const feedUrl = 'https://genshin-feed.com/feed/atom-id-all-articles.xml';
-                    
-                    const response = await fetch(`${proxyUrl}${encodeURIComponent(feedUrl)}`);
-                    
-                    if (!response.ok) {
-                        throw new Error('Gagal memuat feed');
-                    }
-                    
-                    const xmlText = await response.text();
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-                    
-                    const items = xmlDoc.getElementsByTagName('entry');
-                    
-                    if (items.length === 0) {
-                        container.innerHTML = `
-                            <div class="col-12">
-                                <div class="alert alert-warning">Tidak ada artikel ditemukan</div>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    allArticles = Array.from(items).map(item => {
-                        const title = item.getElementsByTagName('title')[0]?.textContent || 'Judul tidak tersedia';
-                        const link = item.getElementsByTagName('link')[0]?.getAttribute('href') || '#';
-                        const date = item.getElementsByTagName('published')[0]?.textContent || 
-                                    item.getElementsByTagName('updated')[0]?.textContent || '';
-                        const content = item.getElementsByTagName('content')[0]?.textContent || '';
-                        const summary = item.getElementsByTagName('summary')[0]?.textContent || '';
-                        
-                        // Ekstrak gambar pertama dari konten
-                        let imageUrl = '';
-                        const imgMatch = content.match(/<img[^>]+src="([^">]+)"/);
-                        if (imgMatch && imgMatch[1]) {
-                            imageUrl = imgMatch[1];
-                        }
-                        
-                        // Bersihkan konten
-                        const cleanContent = (summary || content)
-                            .replace(/<[^>]*>/g, '')
-                            .replace(/Read more on.*$/, '')
-                            .substring(0, 150)
-                            .trim() + '...';
-                        
-                        // Deteksi jenis artikel
-                        const isEvent = /event/i.test(title);
-                        const isWish = /permohonan/i.test(title);
-                        
-                        return {
-                            title,
-                            link,
-                            date,
-                            imageUrl,
-                            content: cleanContent,
-                            isEvent,
-                            isWish,
-                            rawDate: date
-                        };
-                    });
-                    
-                    renderArticles(allArticles);
-                } catch (error) {
-                    console.error('Error:', error);
-                    container.innerHTML = `
-                        <div class="col-12">
-                            <div class="alert alert-danger">
-                                <h4 class="alert-heading">Gagal Memuat Berita</h4>
-                                <p>${error.message}</p>
-                                <hr>
-                                <p class="mb-0">Silakan coba refresh halaman atau kembali lagi nanti.</p>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-            
-            // Fungsi untuk render artikel
-            function renderArticles(articles) {
-                if (articles.length === 0) {
-                    container.innerHTML = `
-                        <div class="col-12">
-                            <div class="alert alert-info">Tidak ada artikel yang cocok dengan pencarian</div>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                let html = '';
-                articles.slice(0, 12).forEach(article => {
-                    // Format tanggal
-                    let formattedDate = '';
-                    if (article.date) {
-                        const dateObj = new Date(article.date);
-                        formattedDate = dateObj.toLocaleDateString('id-ID', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                    }
-                    
-                    html += `
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card article-card h-100">
-                                ${article.imageUrl ? `
-                                    <img src="${article.imageUrl}" class="article-img" alt="${article.title}">
-                                ` : ''}
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <h5 class="card-title article-title">${article.title}</h5>
-                                        <div>
-                                            ${article.isEvent ? '<span class="badge badge-event">Event</span>' : ''}
-                                            ${article.isWish ? '<span class="badge badge-wish">Wish</span>' : ''}
-                                        </div>
-                                    </div>
-                                    <p class="card-text"><small class="article-date"><i class="bi bi-calendar"></i> ${formattedDate}</small></p>
-                                    <p class="card-text article-content">${article.content}</p>
-                                </div>
-                                <div class="card-footer bg-transparent border-top-0">
-                                    <a href="${article.link}" class="btn btn-outline-primary w-100" target="_blank">
-                                        <i class="bi bi-book"></i> Baca Lengkap
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                container.innerHTML = html;
-            }
-            
-            // Fungsi untuk memfilter artikel
-            function filterArticles() {
-                const searchTerm = searchInput.value.toLowerCase();
-                const filtered = allArticles.filter(article => 
-                    article.title.toLowerCase().includes(searchTerm) || 
-                    article.content.toLowerCase().includes(searchTerm)
-                );
-                renderArticles(filtered);
-            }
-            
-            // Event listeners
-            searchInput.addEventListener('input', filterArticles);
-            refreshBtn.addEventListener('click', loadFeed);
-            
-            // Load feed pertama kali
-            loadFeed();
+        container.innerHTML = '';
+        data.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = `
+            ${item.image ? `<img src="${item.image}" alt="Gambar">` : ''}
+            <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
+            <small>${new Date(item.pubDate).toLocaleString('id-ID')}</small>
+            <p>${item.content}</p>
+          `;
+          container.appendChild(div);
         });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '❌ Gagal memuat berita.';
+      }
+    }
+
+    loadFeed();
+  </script>
 </body>
 </html>
